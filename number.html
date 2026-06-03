@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ARP v2.6 - Roulette Tracker</title>
+  <style>
+    :root{
+      --bg:#2b2b2b;
+      --panel:#161616;
+      --text:#e9e9e9;
+      --border:#444;
+      --chip:#222;
+    }
+
+    html,body{
+      height:100%;
+      margin:0;
+      font-family:Segoe UI, Arial, Helvetica, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    body{
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding:8px;
+      box-sizing:border-box;
+    }
+
+    .app{
+      width:min(100%, 640px);
+      padding:10px;
+      border-radius:10px;
+      box-sizing:border-box;
+    }
+
+    .title{
+      font-weight:800;
+      font-size:16px;
+      color:#fff;
+      margin-bottom:8px;
+      text-align:center;
+    }
+
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      justify-content:center;
+      align-items:stretch;
+      margin-bottom:10px;
+    }
+
+    .select-box{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      background:#1f1f1f;
+      border:1px solid var(--border);
+      padding:6px 8px;
+      border-radius:6px;
+      color:#fff;
+      flex-wrap:wrap;
+      justify-content:center;
+      box-sizing:border-box;
+      width:100%;
+    }
+
+    .select-box label{
+      font-size:12px;
+      font-weight:700;
+      white-space:nowrap;
+    }
+
+    .select-box input{
+      width:170px;
+      max-width:100%;
+      padding:6px 8px;
+      border-radius:5px;
+      border:1px solid #555;
+      background:#222;
+      color:#fff;
+      outline:none;
+      font-weight:700;
+      font-size:13px;
+      box-sizing:border-box;
+    }
+
+    .btn{
+      padding:7px 10px;
+      border-radius:6px;
+      border:0;
+      cursor:pointer;
+      font-weight:700;
+      font-size:13px;
+      min-width:72px;
+    }
+
+    .btn-add{background:#1e74ff;color:#fff}
+    .btn-undo{background:#f0ad4e;color:#111}
+    .btn-clear{background:#d9534f;color:#fff}
+
+    .section-title{
+      color:#fff;
+      font-weight:800;
+      font-size:13px;
+      margin:8px 0 4px;
+      text-align:left;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:2px solid #333;
+      padding:10px;
+      border-radius:8px;
+      box-sizing:border-box;
+      min-height:52px;
+      display:flex;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+
+    .recent-box{
+      flex-direction:row-reverse;
+      justify-content:flex-start;
+    }
+
+    .pred-box{
+      min-height:70px;
+      font-size:16px;
+      line-height:1.6;
+    }
+
+    .badge{
+      display:inline-block;
+      padding:4px 9px;
+      border-radius:999px;
+      background:var(--chip);
+      border:1px solid #444;
+      color:#fff;
+      font-size:12px;
+      font-weight:800;
+      line-height:1;
+    }
+
+    .badge.recent{
+      background:#303030;
+      border-color:#555;
+    }
+
+    .badge.pred{
+      background:#1b1b1b;
+      border-color:#2f6;
+      font-size:14px;
+      padding:5px 11px;
+    }
+
+    .text-msg{
+      color:#00ff99;
+      font-family:Courier, monospace;
+      font-weight:800;
+      font-size:15px;
+      line-height:1.45;
+      word-break:break-word;
+    }
+
+    .note{
+      width:100%;
+      text-align:center;
+      font-size:12px;
+      color:#bfbfbf;
+      margin-top:-2px;
+      margin-bottom:6px;
+    }
+
+    @media (max-width: 480px){
+      body{padding:6px}
+      .app{width:100%; padding:8px}
+      .title{font-size:15px}
+      .btn{
+        min-width:64px;
+        padding:6px 9px;
+        font-size:12px;
+      }
+      .select-box input{
+        width:100%;
+      }
+      .pred-box{
+        font-size:15px;
+      }
+      .text-msg{
+        font-size:13px;
+      }
+      .badge.pred{
+        font-size:13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="title">ARP v2.6 — Roulette Tracker</div>
+
+    <div class="controls">
+      <div class="select-box">
+        <label for="numInput">Recent Number:</label>
+        <input
+          id="numInput"
+          type="text"
+          inputmode="numeric"
+          placeholder="0 to 36"
+          autocomplete="off"
+        />
+        <button class="btn btn-add" id="addBtn">Add</button>
+        <button class="btn btn-undo" id="undoBtn">UNDO</button>
+        <button class="btn btn-clear" id="clearBtn">Clear</button>
+      </div>
+
+      <div class="note">
+        Enter दबाने पर भी नंबर add होगा. Recent 10 numbers right → left दिखेंगे.
+      </div>
+    </div>
+
+    <div class="section-title">Recent 10 Numbers:</div>
+    <div class="panel recent-box" id="recentBox">
+      <span class="badge recent">No numbers</span>
+    </div>
+
+    <div class="section-title">Prediction Box:</div>
+    <div class="panel pred-box" id="predBox">
+      <span class="text-msg">Recent numbers डालें</span>
+    </div>
+  </div>
+
+  <script>
+    const redCombos = [
+      [0, 1, 5, 3],
+      [7, 14, 21],
+      [36, 27, 1, 13],
+      [18, 30, 36],
+      [23, 32, 0]
+    ];
+
+    const blackCombos = [
+      [11, 22, 33],
+      [28, 35],
+      [4, 15, 19],
+      [17, 34],
+      [12, 6, 21],
+      [13, 31, 26, 0]
+    ];
+
+    const allCombos = [...redCombos, ...blackCombos];
+
+    const numInput = document.getElementById('numInput');
+    const addBtn = document.getElementById('addBtn');
+    const undoBtn = document.getElementById('undoBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const recentBox = document.getElementById('recentBox');
+    const predBox = document.getElementById('predBox');
+
+    let recentNumbers = [];
+
+    function sanitizeNumber(v){
+      if(v === "" || v === null || v === undefined) return null;
+      const n = parseInt(String(v).trim(), 10);
+      return Number.isNaN(n) ? null : n;
+    }
+
+    function uniquePush(arr, value){
+      if(!arr.includes(value)) arr.push(value);
+    }
+
+    function wrapNumber(n){
+      if(n < 0) return 36;
+      if(n > 36) return 0;
+      return n;
+    }
+
+    function parseRecentInput(){
+      const n = sanitizeNumber(numInput.value);
+      if(n === null) return null;
+      if(n < 0 || n > 36) return null;
+      return n;
+    }
+
+    function getLastTenNumbers(){
+      return recentNumbers.slice(-10);
+    }
+
+    function getLastTwoNumbers(){
+      return recentNumbers.slice(-2);
+    }
+
+    function buildComboPredictions(recentNums){
+      const result = [];
+
+      for(const n of recentNums){
+        for(const combo of allCombos){
+          if(combo.includes(n)){
+            for(const item of combo){
+              uniquePush(result, item);
+            }
+          }
+        }
+      }
+
+      return result;
+    }
+
+    function buildPlusMinusPredictions(recentNums){
+      const result = [];
+
+      for(const n of recentNums){
+        uniquePush(result, wrapNumber(n - 1));
+        uniquePush(result, wrapNumber(n + 1));
+      }
+
+      return result;
+    }
+
+    function buildHouseRepeatPredictions(recentNums){
+      const result = [];
+      const counts = Array(10).fill(0);
+
+      for(const n of recentNums){
+        const digit = n % 10;
+        counts[digit]++;
+      }
+
+      for(let digit = 0; digit <= 9; digit++){
+        if(counts[digit] >= 2){
+          for(let n = 0; n <= 36; n++){
+            if(n % 10 === digit && !recentNums.includes(n)){
+              uniquePush(result, n);
+            }
+          }
+        }
+      }
+
+      return result;
+    }
+
+    function sortAscending(nums){
+      return [...nums].sort((a, b) => a - b);
+    }
+
+    function renderRecent(){
+      const lastTen = getLastTenNumbers();
+
+      if(lastTen.length === 0){
+        recentBox.innerHTML = '<span class="badge recent">No numbers</span>';
+        return;
+      }
+
+      recentBox.innerHTML = lastTen
+        .map(n => `<span class="badge recent">${n}</span>`)
+        .join("");
+    }
+
+    function renderPrediction(){
+      const lastTwo = getLastTwoNumbers();
+      const lastTen = getLastTenNumbers();
+
+      if(lastTwo.length === 0){
+        predBox.innerHTML = '<span class="text-msg">Recent numbers डालें</span>';
+        return;
+      }
+
+      const comboPreds = buildComboPredictions(lastTwo);
+      const pmPreds = buildPlusMinusPredictions(lastTwo);
+      const housePreds = buildHouseRepeatPredictions(lastTen);
+
+      const finalPreds = [];
+      for(const n of comboPreds) uniquePush(finalPreds, n);
+      for(const n of pmPreds) uniquePush(finalPreds, n);
+      for(const n of housePreds) uniquePush(finalPreds, n);
+
+      const sortedPreds = sortAscending(finalPreds);
+
+      if(sortedPreds.length === 0){
+        predBox.innerHTML = '<span class="text-msg">कोई prediction नहीं मिला</span>';
+        return;
+      }
+
+      predBox.innerHTML = sortedPreds
+        .map(n => `<span class="badge pred">${n}</span>`)
+        .join("");
+    }
+
+    function refreshAll(){
+      renderRecent();
+      renderPrediction();
+    }
+
+    function addNumber(){
+      const n = parseRecentInput();
+      if(n === null){
+        numInput.value = "";
+        numInput.focus();
+        return;
+      }
+
+      recentNumbers.push(n);
+
+      if(recentNumbers.length > 10){
+        recentNumbers = recentNumbers.slice(-10);
+      }
+
+      numInput.value = "";
+      numInput.focus();
+      refreshAll();
+    }
+
+    function undoLast(){
+      recentNumbers.pop();
+      refreshAll();
+    }
+
+    function clearAll(){
+      recentNumbers = [];
+      numInput.value = "";
+      refreshAll();
+      numInput.focus();
+    }
+
+    addBtn.addEventListener('click', addNumber);
+    undoBtn.addEventListener('click', undoLast);
+    clearBtn.addEventListener('click', clearAll);
+
+    numInput.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        addNumber();
+      }
+    });
+
+    refreshAll();
+  </script>
+</body>
+</html>
